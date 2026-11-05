@@ -1,0 +1,121 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* =========================
+   1. GLOBAL DESIGN VARIABLES
+========================= */
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+
+  /* Background colors */
+  --bg-primary: #10111B;
+  --bg-secondary: #171825;
+  --bg-card: #1C1D2B;
+
+  /* Accent colors */
+  --primary: #8B5CF6;
+  --primary-hover: #7C3AED;
+  --secondary: #38BDF8;
+  --accent: #F59E0B;
+
+  /* Text colors */
+  --text-primary: #F8FAFC;
+  --text-secondary: #A1A1B5;
+  --text-muted: #717187;
+
+  /* Borders and effects */
+  --border-color: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.04);
+
+  /* Shadows */
+  --shadow-glow: 0 0 30px rgba(139, 92, 246, 0.20);
+
+  /* Border radius */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+}
+
+/* =========================
+   2. RESET DEFAULT STYLES
+========================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* =========================
+   3. TYPOGRAPHY
+========================= */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* =========================
+   4. BUTTON DEFAULTS
+========================= */
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* =========================
+   5. SELECTION COLOR
+========================= */
+
+::selection {
+  background: var(--primary);
+  color: white;
+}
+
+/* =========================
+   6. SCROLLBAR
+========================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #39364F;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
