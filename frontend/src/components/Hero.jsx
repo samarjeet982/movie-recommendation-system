@@ -45,7 +45,7 @@ function Hero() {
 
       // Send request to FastAPI
       const response = await fetch(
-        `http://127.0.0.1:8000/recommend/${encodeURIComponent(movie.trim())}`
+        `https://cinematch-api-5r26.onrender.com/recommend//${encodeURIComponent(movie.trim())}`
       );
 
       // Convert response into JSON
