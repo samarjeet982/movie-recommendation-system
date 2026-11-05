@@ -15,6 +15,12 @@ import {
 
 import "./Hero.css";
 
+// ==========================================
+// API CONFIGURATION
+// ==========================================
+
+const API_BASE_URL = "https://cinematch-api-5r26.onrender.com";
+
 function Hero() {
 
   // Store movie title
@@ -29,7 +35,10 @@ function Hero() {
   // Error state
   const [error, setError] = useState("");
 
-  // Search movie function
+  // ==========================================
+  // SEARCH MOVIE FUNCTION
+  // ==========================================
+
   const handleSearch = async () => {
 
     if (!movie.trim()) {
@@ -39,14 +48,22 @@ function Hero() {
     }
 
     try {
+
       setLoading(true);
       setError("");
       setRecommendations([]);
 
+      // Construct API URL safely
+      const baseUrl = API_BASE_URL.replace(/\/+$/, "");
+
+      const requestUrl =
+        `${baseUrl}/recommend/${encodeURIComponent(movie.trim())}`;
+
+      // Debug API request URL
+      console.log("API Request URL:", requestUrl);
+
       // Send request to FastAPI
-      const response = await fetch(
-        `https://cinematch-api-5r26.onrender.com/recommend/${encodeURIComponent(movie.trim())}`
-      );
+      const response = await fetch(requestUrl);
 
       // Convert response into JSON
       const data = await response.json();
@@ -57,9 +74,11 @@ function Hero() {
       }
 
       // Store recommendations
-      setRecommendations(data.recommendations);
+      setRecommendations(data.recommendations || []);
 
     } catch (err) {
+
+      console.error("Movie recommendation error:", err);
 
       setError(
         err.message === "Failed to fetch"
@@ -68,21 +87,32 @@ function Hero() {
       );
 
     } finally {
+
       setLoading(false);
+
     }
   };
 
-  // Clear search and results
+  // ==========================================
+  // CLEAR SEARCH AND RESULTS
+  // ==========================================
+
   const clearSearch = () => {
     setMovie("");
     setRecommendations([]);
     setError("");
   };
 
+  // ==========================================
+  // UI
+  // ==========================================
+
   return (
+
     <section className="hero" id="home">
 
       {/* Background effects */}
+
       <div className="hero-glow hero-glow-one"></div>
       <div className="hero-glow hero-glow-two"></div>
       <div className="hero-grid"></div>
@@ -90,12 +120,14 @@ function Hero() {
       <div className="hero-content">
 
         {/* AI Badge */}
+
         <div className="hero-badge">
           <Sparkles size={16} />
           <span>AI-POWERED MOVIE DISCOVERY</span>
         </div>
 
         {/* Main Heading */}
+
         <h1 className="hero-title">
           Discover Movies
           <br />
@@ -105,6 +137,7 @@ function Hero() {
         </h1>
 
         {/* Description */}
+
         <p className="hero-description">
           Stop scrolling. Start discovering.
           Find your next favourite movie with our
@@ -112,6 +145,7 @@ function Hero() {
         </p>
 
         {/* Search Container */}
+
         <div className="hero-search">
 
           <Search size={21} className="search-icon" />
@@ -152,7 +186,10 @@ function Hero() {
             {loading ? (
               <>
                 Searching...
-                <LoaderCircle size={17} className="loading-icon" />
+                <LoaderCircle
+                  size={17}
+                  className="loading-icon"
+                />
               </>
             ) : (
               <>
@@ -165,6 +202,7 @@ function Hero() {
         </div>
 
         {/* Error Message */}
+
         {error && (
           <div className="search-error">
             <AlertCircle size={17} />
@@ -173,6 +211,7 @@ function Hero() {
         )}
 
         {/* Loading Message */}
+
         {loading && (
           <p className="loading-message">
             Finding movies you'll love...
@@ -180,18 +219,22 @@ function Hero() {
         )}
 
         {/* Footer */}
+
         <div className="hero-footer">
           <Sparkles size={14} />
           <p>Discover movies based on what you love.</p>
         </div>
 
         {/* Recommendation Results */}
+
         {recommendations.length > 0 && (
+
           <div className="recommendation-results">
 
             <div className="results-heading">
 
               <div>
+
                 <span className="results-eyebrow">
                   YOUR MOVIE DISCOVERIES
                 </span>
@@ -204,6 +247,7 @@ function Hero() {
                 <p>
                   Here are some movies you might want to explore.
                 </p>
+
               </div>
 
               <div className="results-count">
@@ -214,6 +258,7 @@ function Hero() {
             </div>
 
             {/* Recommendation Cards */}
+
             <div className="recommendation-grid">
 
               {recommendations.map((item, index) => {
@@ -226,11 +271,15 @@ function Hero() {
                 );
 
                 // Get genres from OMDb
+
                 const genres = item.genre
-                  ? item.genre.split(",").map((genre) => genre.trim())
+                  ? item.genre.split(",").map(
+                      (genre) => genre.trim()
+                    )
                   : [];
 
                 return (
+
                   <article
                     className="recommendation-card"
                     key={item.id}
@@ -240,9 +289,11 @@ function Hero() {
                   >
 
                     {/* Movie Poster */}
+
                     <div className="movie-poster-container">
 
                       {item.poster && item.poster !== "N/A" ? (
+
                         <img
                           src={item.poster}
                           alt={`${item.title} movie poster`}
@@ -250,14 +301,22 @@ function Hero() {
                           loading="lazy"
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
+                            e.currentTarget.parentElement
+                              .querySelector(".poster-placeholder")
+                              ?.classList.remove("hidden");
                           }}
                         />
-                      ) : (
-                        <div className="poster-placeholder">
-                          <Film size={40} />
-                          <span>Poster unavailable</span>
-                        </div>
-                      )}
+
+                      ) : null}
+
+                      <div className={`poster-placeholder ${
+                        item.poster && item.poster !== "N/A"
+                          ? "hidden"
+                          : ""
+                      }`}>
+                        <Film size={40} />
+                        <span>Poster unavailable</span>
+                      </div>
 
                       <div className="poster-rank">
                         #{String(index + 1).padStart(2, "0")}
@@ -271,9 +330,11 @@ function Hero() {
                     </div>
 
                     {/* Movie Information */}
+
                     <div className="movie-card-content">
 
                       <div className="movie-title-row">
+
                         <h3>{item.title}</h3>
 
                         {item.year && (
@@ -281,38 +342,64 @@ function Hero() {
                             {item.year}
                           </span>
                         )}
+
                       </div>
 
                       {/* IMDb Rating */}
-                      {item.imdb_rating && item.imdb_rating !== "N/A" && (
+
+                      {item.imdb_rating &&
+                        item.imdb_rating !== "N/A" && (
+
                         <div className="movie-rating">
-                          <Star size={15} fill="currentColor" />
-                          <strong>{item.imdb_rating}/10</strong>
+
+                          <Star
+                            size={15}
+                            fill="currentColor"
+                          />
+
+                          <strong>
+                            {item.imdb_rating}/10
+                          </strong>
+
                           <span>IMDb</span>
+
                         </div>
+
                       )}
 
                       {/* Movie Overview */}
+
                       <p className="movie-overview">
                         {item.overview}
                       </p>
 
                       {/* Genres */}
+
                       <div className="movie-genres">
+
                         {genres.map((genre) => (
                           <span key={genre}>{genre}</span>
                         ))}
+
                       </div>
 
                       {/* Director */}
-                      {item.director && item.director !== "N/A" && (
+
+                      {item.director &&
+                        item.director !== "N/A" && (
+
                         <div className="movie-director">
+
                           <span>Director</span>
+
                           <strong>{item.director}</strong>
+
                         </div>
+
                       )}
 
                       {/* Similarity Score */}
+
                       <div className="similarity-details">
 
                         <span>Content similarity</span>
@@ -338,7 +425,9 @@ function Hero() {
                     </div>
 
                   </article>
+
                 );
+
               })}
 
             </div>
@@ -349,10 +438,13 @@ function Hero() {
             </p>
 
           </div>
+
         )}
 
       </div>
+
     </section>
+
   );
 }
 
