@@ -1,5 +1,8 @@
 
-def recommend(movie_title, movies, similarity):
+from sklearn.metrics.pairwise import cosine_similarity
+
+
+def recommend(movie_title, movies, tfidf_matrix):
 
     # Remove extra spaces from the movie title
     movie_title = movie_title.strip()
@@ -16,8 +19,11 @@ def recommend(movie_title, movies, similarity):
     # Get the index of the selected movie
     movie_index = matched_movies.index[0]
 
-    # Get similarity scores for the selected movie
-    distances = similarity[movie_index]
+    # Calculate similarity only for the selected movie
+    distances = cosine_similarity(
+        tfidf_matrix[movie_index],
+        tfidf_matrix
+    ).flatten()
 
     # Sort movies by similarity score in descending order
     movies_list = sorted(
@@ -29,14 +35,11 @@ def recommend(movie_title, movies, similarity):
     # Store recommended movies
     recommendations = []
 
-    # Skip the first movie because it is the movie searched by the user
-    # Select the next five similar movies
+    # Skip the searched movie and select the next five
     for movie in movies_list[1:6]:
 
-        # Get the complete movie information
         recommended_movie = movies.iloc[movie[0]]
 
-        # Add movie information to recommendations
         recommendations.append({
             "id": int(recommended_movie["id"]),
             "title": recommended_movie["title"],
@@ -45,5 +48,4 @@ def recommend(movie_title, movies, similarity):
             "similarity_score": round(float(movie[1]), 3)
         })
 
-    # Return the final recommendations
     return recommendations

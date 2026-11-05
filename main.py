@@ -25,7 +25,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,7 +40,10 @@ app.add_middleware(
 # ==========================================
 
 movies = joblib.load("models/movies.pkl")
-similarity = joblib.load("models/similarity.pkl")
+
+tfidf_matrix = joblib.load(
+    "models/tfidf_matrix.pkl"
+)
 
 
 # ==========================================
@@ -59,14 +65,12 @@ def home():
 @app.get("/recommend/{movie_title}")
 def get_recommendations(movie_title: str):
 
-    # Find similar movies using recommendation engine
     recommendations = recommend(
         movie_title,
         movies,
-        similarity
+        tfidf_matrix
     )
 
-    # Check whether the searched movie exists
     if recommendations is None:
 
         raise HTTPException(
@@ -74,16 +78,14 @@ def get_recommendations(movie_title: str):
             detail="Movie not found in our dataset"
         )
 
-    # Store enriched movie information
     enriched_recommendations = []
 
-    # Retrieve additional details for each recommended movie
     for movie in recommendations:
 
-        # Fetch movie details from OMDb
-        movie_details = get_movie_details(movie["title"])
+        movie_details = get_movie_details(
+            movie["title"]
+        )
 
-        # Extract additional metadata
         if movie_details:
 
             movie["year"] = movie_details.get("Year")
@@ -94,7 +96,6 @@ def get_recommendations(movie_title: str):
 
         else:
 
-            # Use fallback values if OMDb cannot find the movie
             movie["year"] = None
             movie["genre"] = None
             movie["poster"] = None
@@ -103,7 +104,6 @@ def get_recommendations(movie_title: str):
 
         enriched_recommendations.append(movie)
 
-    # Return final response
     return {
         "movie": movie_title,
         "recommendations": enriched_recommendations

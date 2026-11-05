@@ -1,18 +1,33 @@
+
 import joblib
 import pandas as pd
 import json
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from recommend import recommend
+import os
 
-# Load datasets
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+
+# ==========================================
+# 1. LOAD DATASETS
+# ==========================================
+
 movies = pd.read_csv("data/tmdb_5000_movies.csv")
 credits = pd.read_csv("data/tmdb_5000_credits.csv")
 
-# Handle missing overviews
+print("Datasets loaded successfully!")
+
+
+# ==========================================
+# 2. HANDLE MISSING VALUES
+# ==========================================
+
 movies["overview"] = movies["overview"].fillna("")
 
-# Merge datasets
+
+# ==========================================
+# 3. MERGE DATASETS
+# ==========================================
+
 movies = pd.merge(
     movies,
     credits,
@@ -21,28 +36,21 @@ movies = pd.merge(
     how="inner"
 )
 
-# Rename and remove unnecessary columns
-movies = movies.rename(columns={"title_x": "title"})
+movies = movies.rename(
+    columns={"title_x": "title"}
+)
 
 movies = movies.drop(
     columns=["title_y", "movie_id"]
 )
 
-# Display original genres data
-print("Original genres value:")
-print(movies["genres"][0])
-
-# Convert JSON string into Python object
-genres = json.loads(movies["genres"][0])
-
-print("\nConverted genres:")
-print(genres)
-
-print("\nData type after conversion:")
-print(type(genres))
+print("Datasets merged successfully!")
+print("Merged dataset shape:", movies.shape)
 
 
-# Function to extract genre names
+# ==========================================
+# 4. EXTRACT GENRES
+# ==========================================
 
 def extract_genres(genre_data):
 
@@ -56,21 +64,12 @@ def extract_genres(genre_data):
     return genre_names
 
 
-# Apply function to all movies
-
 movies["genres"] = movies["genres"].apply(extract_genres)
 
 
-# Display results
-
-print("\nExtracted Genres:")
-
-print(movies[["title", "genres"]].head(10))
-
-print("\nOriginal Keywords:")
-print(movies["keywords"][0])
-
-# Function to extract keyword names
+# ==========================================
+# 5. EXTRACT KEYWORDS
+# ==========================================
 
 def extract_keywords(keyword_data):
 
@@ -84,21 +83,12 @@ def extract_keywords(keyword_data):
     return keyword_names
 
 
-# Apply function to all movies
-
 movies["keywords"] = movies["keywords"].apply(extract_keywords)
 
 
-# Display extracted keywords
-
-print("\nExtracted Keywords:")
-
-print(movies[["title", "keywords"]].head(10))
-
-print("\nOriginal Cast:")
-print(movies["cast"][0])
-
-# Function to extract top three actors
+# ==========================================
+# 6. EXTRACT TOP THREE CAST MEMBERS
+# ==========================================
 
 def extract_cast(cast_data):
 
@@ -112,18 +102,12 @@ def extract_cast(cast_data):
     return cast_names
 
 
-# Apply function to all movies
-
 movies["cast"] = movies["cast"].apply(extract_cast)
 
 
-# Display results
-
-print("\nExtracted Cast:")
-
-print(movies[["title", "cast"]].head(10))
-
-# Function to extract director name
+# ==========================================
+# 7. EXTRACT DIRECTOR
+# ==========================================
 
 def extract_director(crew_data):
 
@@ -132,24 +116,17 @@ def extract_director(crew_data):
     for person in crew_list:
 
         if person["job"] == "Director":
-
             return person["name"]
 
     return ""
 
 
-# Apply function to all movies
-
 movies["director"] = movies["crew"].apply(extract_director)
 
 
-# Display extracted directors
-
-print("\nExtracted Directors:")
-
-print(movies[["title", "director"]].head(10))
-
-# Select important columns for recommendation
+# ==========================================
+# 8. SELECT REQUIRED COLUMNS
+# ==========================================
 
 movies = movies[
     [
@@ -163,15 +140,13 @@ movies = movies[
     ]
 ]
 
-print("\nSelected Movie Features:")
+print("\nSelected movie features:")
+print(movies.head())
 
-print(movies.head(5))
 
-print("\nSelected Dataset Shape:")
-
-print(movies.shape)
-
-# Convert list values into strings
+# ==========================================
+# 9. CONVERT LISTS INTO STRINGS
+# ==========================================
 
 movies["genres"] = movies["genres"].apply(
     lambda x: " ".join(x)
@@ -185,7 +160,10 @@ movies["cast"] = movies["cast"].apply(
     lambda x: " ".join(x)
 )
 
-# Convert director and overview to lowercase
+
+# ==========================================
+# 10. CONVERT TEXT INTO LOWERCASE
+# ==========================================
 
 movies["director"] = movies["director"].apply(
     lambda x: x.lower()
@@ -195,17 +173,10 @@ movies["overview"] = movies["overview"].apply(
     lambda x: x.lower()
 )
 
-# Display updated data
 
-print("\nUpdated Movie Features:")
-
-print(
-    movies[
-        ["title", "genres", "keywords", "cast", "director"]
-    ].head(5)
-)
-
-# Combine all text features into one column
+# ==========================================
+# 11. CREATE COMBINED TAGS
+# ==========================================
 
 movies["tags"] = (
     movies["overview"] + " " +
@@ -215,68 +186,66 @@ movies["tags"] = (
     movies["director"]
 )
 
-# Display the combined features
-
-print("\nMovie Tags:")
-print(movies[["title", "tags"]].head(5))
+print("\nMovie tags created successfully!")
 
 
+# ==========================================
+# 12. TF-IDF VECTORIZATION
+# ==========================================
 
-# Create TF-IDF vectorizer
 tfidf = TfidfVectorizer()
 
-# Convert movie tags into numerical vectors
-tfidf_matrix = tfidf.fit_transform(movies["tags"])
+tfidf_matrix = tfidf.fit_transform(
+    movies["tags"]
+)
 
-# Display matrix information
 print("\nTF-IDF Matrix Shape:")
 print(tfidf_matrix.shape)
 
-print("\nTotal Features (Unique Words):")
+print("\nTotal Features:")
 print(len(tfidf.get_feature_names_out()))
 
-# Get all unique words
-feature_names = tfidf.get_feature_names_out()
-
-# Get TF-IDF vector for the first movie
-first_movie_vector = tfidf_matrix[0]
-
-print("\nTF-IDF Scores for Avatar:")
-
-for index, score in zip(
-    first_movie_vector.indices,
-    first_movie_vector.data
-):
-    print(feature_names[index], round(score, 3))
+print("\nNumber of Non-zero Values:")
+print(tfidf_matrix.nnz)
 
 
+# ==========================================
+# 13. CREATE MODELS DIRECTORY
+# ==========================================
 
-# Calculate similarity between all movies
-similarity = cosine_similarity(tfidf_matrix)
+os.makedirs("models", exist_ok=True)
+
+
+# ==========================================
+# 14. SAVE MODEL FILES
+# ==========================================
 
 # Save processed movie data
-joblib.dump(movies, "models/movies.pkl")
+joblib.dump(
+    movies,
+    "models/movies.pkl"
+)
 
 # Save TF-IDF vectorizer
-joblib.dump(tfidf, "models/tfidf.pkl")
+joblib.dump(
+    tfidf,
+    "models/tfidf.pkl"
+)
 
-# Save similarity matrix
-joblib.dump(similarity, "models/similarity.pkl")
-
-print("\nModel files saved successfully!")
-
-# Display similarity matrix shape
-print("\nSimilarity Matrix Shape:")
-print(similarity.shape)
-
-
+# Save sparse TF-IDF matrix
+joblib.dump(
+    tfidf_matrix,
+    "models/tfidf_matrix.pkl"
+)
 
 
+print("\n====================================")
+print("MODEL FILES SAVED SUCCESSFULLY!")
+print("====================================")
 
-# Test imported recommendation function
+print("\nSaved Files:")
+print("- models/movies.pkl")
+print("- models/tfidf.pkl")
+print("- models/tfidf_matrix.pkl")
 
-recommend("Avatar", movies, similarity)
-
-recommend("Titanic", movies, similarity)
-
-recommend("Avatr", movies, similarity)
+print("\nPreprocessing completed successfully!")
