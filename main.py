@@ -29,6 +29,7 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:5174",
         "http://localhost:5175",
+        "https://cinematch-theta-murex.vercel.app",
         "https://cinematch-q7jqjejak-samarjeet982s-projects.vercel.app"
     ],
     allow_credentials=True,
